@@ -1,0 +1,13 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+.container {
+  @include container(1920px, 15px);
+}
+
+.wrap {
+  @include container(1270px, 15px);
+}
