@@ -1,0 +1,50 @@
+{
+  "name": "gulp-project",
+  "version": "0.0.6",
+  "description": "Сборщик проекта",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "stylelint": "stylelint 'src/scss/**/*.scss'",
+    "stylelint:fix": "stylelint 'src/scss/**/*.scss' --fix"
+  },
+  "author": "Bobokhuja <bobokhuja@yandex.ru>",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.16.0",
+    "autoprefixer": "^10.4.0",
+    "browser-sync": "^2.27.7",
+    "cssnano": "^5.0.10",
+    "del": "^6.0.0",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-cheerio": "^1.0.0",
+    "gulp-fonter": "^0.3.0",
+    "gulp-imagemin": "^7.0.0",
+    "gulp-postcss": "^9.0.1",
+    "gulp-pug": "^5.0.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-sass": "^5.0.0",
+    "gulp-sourcemaps": "^3.0.0",
+    "gulp-svg-sprite": "^1.5.0",
+    "gulp-svgsprite": "^1.0.2",
+    "gulp-ttf2woff2": "^4.0.1",
+    "gulp-uglify-es": "^3.0.0",
+    "gulp-webp": "^4.0.1",
+    "postcss": "^8.3.11",
+    "prettier": "^2.4.1",
+    "sass": "^1.43.4",
+    "stylelint-config-prettier": "^9.0.3",
+    "stylelint-config-rational-order": "^0.1.2",
+    "stylelint-config-standard": "^24.0.0",
+    "stylelint-order": "^5.0.0",
+    "stylelint-prettier": "^2.0.0",
+    "stylelint-scss": "^4.0.0"
+  },
+  "dependencies": {
+    "@babel/preset-env": "^7.16.0",
+    "postcss-browser-reporter": "^0.6.0",
+    "postcss-reporter": "^7.0.4",
+    "stylelint": "^14.1.0"
+  }
+}
