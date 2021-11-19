@@ -34,3 +34,16 @@
   src: $src;
   font-display: swap;
 }
+
+@mixin button($width: auto, $height: auto, $bg, $fz, $lh, $border, $br, $color) {
+  font-size: $fz;
+  background: $bg;
+  line-height: $lh;
+  border: $border;
+  border-radius: $br;
+  color: $color;
+  width: $width;
+  height: $height;
+  display: inline-block;
+  text-align: center;
+}
