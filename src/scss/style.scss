@@ -1,7 +1,15 @@
-@import 'variables';
-@import 'mixins';
-@import 'fonts';
-@import 'normalize';
-@import 'core';
+@use "sass:math";
 
-@import 'blocks/header';
+@import "variables.scss";
+@import "mixins";
+@import "fonts";
+@import "normalize";
+@import "core";
+
+@import "blocks/header";
+
+body {
+  margin: 20px auto;
+  margin: 0 math.div(15, 10);
+  font-size: 16px;
+}

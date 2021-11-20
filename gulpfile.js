@@ -1,3 +1,5 @@
+const { lint } = require('stylelint');
+
 // Конфигурация
 const mode = 'development';
 
@@ -53,15 +55,11 @@ const gulp = require('gulp'),
       postcss = require('gulp-postcss'),
       autoprefixer = require('autoprefixer'),
       cssnano = require('cssnano'),
-      pug = require('gulp-pug');
+      pug = require('gulp-pug'),
+      stylelint = require('stylelint'),
+      reporter = require('postcss-reporter');
 
 // Tasks
-
-function html() {
-  return gulp.src(path.src.html)
-    .pipe(gulp.dest(path.dist.html))
-    .pipe(browserSync.stream())
-}
 
 function pugBuild() {
   return gulp.src(path.src.pug)
@@ -80,62 +78,94 @@ function scss() {
     processor.push(cssnano())
   }
   return gulp.src(path.src.sass)
-    .pipe(sourcemaps.init())
-    .pipe(postcss([require('stylelint'), require('postcss-reporter')]))
-    .pipe(sass({
-      outputStyle: 'expanded'
-    }).on('error', sass.logError))
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest(path.dist.css))
-    .pipe(gulp.src(path.src.sass))
-    .pipe(sass())
-    .pipe(postcss(processor))
-    .pipe(rename({extname: '.min.css'}))
-    .pipe(gulp.dest(path.dist.css))
-    .pipe(browserSync.stream())
+          .pipe(sourcemaps.init())
+          .pipe(postcss([stylelint()]))
+          .pipe(sass({
+            outputStyle: 'expanded'
+          }).on('error', sass.logError))
+          .pipe(sourcemaps.write())
+          .pipe(gulp.dest(path.dist.css))
+          .pipe(browserSync.stream())
+    
+}
+
+function scssProduction() {
+  let processor = [autoprefixer('last 2 versions')]
+
+  return gulp.src(path.src.sass)
+          .pipe(sass({
+            outputStyle: 'expanded'
+          }).on('error', sass.logError))
+          .pipe(postcss(processor))
+          .pipe(gulp.dest(path.dist.css))
+          .pipe(gulp.src(path.dist.css + '/style.css'))
+          .pipe(rename('style.min.css'))
+          .pipe(gulp.dest(path.dist.css))
+          .pipe(browserSync.stream());
+}
+
+function linter() {
+  let processor = [
+      stylelint(require('./.stylelintrc.js')),
+      reporter({
+        clearReportedMessages: true
+      })
+    ];
+
+  return gulp.src(path.src.sass)
+          .pipe(postcss(processor))
+
 }
 
 function css() {
   return gulp.src(path.src.css)
-    .pipe(gulp.dest(path.dist.css))
-    .pipe(browserSync.stream())
+          .pipe(gulp.dest(path.dist.css))
+          .pipe(browserSync.stream());
 }
 
 function js() {
-    gulp.src(path.src.js)
-    .pipe(babel({
-      presets: ["@babel/preset-env"]
-    }))
-    .pipe(gulp.dest(path.dist.js))
     return gulp.src(path.src.js)
-    .pipe(uglify())
-    .pipe(rename({extname: '.min.js'}))
-    .pipe(gulp.dest(path.dist.js))
-    .pipe(browserSync.stream())
+            .pipe(babel({
+              presets: ["@babel/preset-env"]
+            }))
+            .pipe(gulp.dest(path.dist.js))
+            .pipe(browserSync.stream());
+      
+}
+
+function jsProduction() {
+  return gulp.src(path.src.js)
+          .pipe(babel({
+              presets: ["@babel/preset-env"]
+            }))
+          .pipe(uglify())
+          .pipe(rename({extname: '.min.js'}))
+          .pipe(gulp.dest(path.dist.js))
+          .pipe(browserSync.stream());
 }
 
 function img() {
   return gulp.src(path.src.img)
-    .pipe(imagemin([
-      imagemin.gifsicle({interlaced: true}),
-      imagemin.mozjpeg({quality: 75, progressive: true}),
-      imagemin.optipng({optimizationLevel: 5}),
-      imagemin.svgo({
-        plugins: [
-          {removeViewBox: true},
-          {cleanupIDs: false}
-        ]
-      })
-    ]))
-    .pipe(gulp.dest(path.dist.img))
-    .pipe(browserSync.stream())
+          .pipe(imagemin([
+            imagemin.gifsicle({interlaced: true}),
+            imagemin.mozjpeg({quality: 75, progressive: true}),
+            imagemin.optipng({optimizationLevel: 5}),
+            imagemin.svgo({
+              plugins: [
+                {removeViewBox: true},
+                {cleanupIDs: false}
+              ]
+            })
+          ]))
+          .pipe(gulp.dest(path.dist.img))
+          .pipe(browserSync.stream());
 }
 
 function img2webp() {
   return gulp.src(distFolder + '/img/**/*.{png,jpg}')
-    .pipe(webp({quality: 75}))
-    .pipe(gulp.dest(path.dist.img))
-    .pipe(browserSync.stream())
+          .pipe(webp({quality: 75}))
+          .pipe(gulp.dest(path.dist.img))
+          .pipe(browserSync.stream());
 }
 
 function sprite() {
@@ -157,6 +187,7 @@ function sprite() {
       })
     )
     .pipe(gulp.dest(path.dist.img))
+    .pipe(browserSync.stream());
 }
 
 function toWoff() {
@@ -165,26 +196,14 @@ function toWoff() {
       formats: ['woff']
     }))
     .pipe(gulp.dest(path.dist.fonts))
-    .pipe(browserSync.stream())
+    .pipe(browserSync.stream());
 }
 
 function toWoff2() {
   return gulp.src(sourceFolder + '/fonts/**/*.ttf')
     .pipe(ttf2woff2())
     .pipe(gulp.dest(path.dist.fonts))
-    .pipe(browserSync.stream())
-}
-
-async function minify() {
-  if (mode === 'production') {
-    let processor = [autoprefixer('last 2 versions'), cssnano()]
-    return await gulp.src(path.dist.css + '/*.css')
-    .pipe(postcss(processor))
-    .pipe(rename('*.min.css'))
-    .pipe(gulp.dest(path.dist.css))
-    .pipe(browserSync.stream())
-  }
-  
+    .pipe(browserSync.stream());
 }
 
 function server() {
@@ -199,8 +218,8 @@ function server() {
 
 function watcher() {
   gulp.watch([path.watch.pug], gulp.series(pugBuild));
-  gulp.watch([path.watch.css], gulp.series(css, minify));
-  gulp.watch([path.watch.sass], gulp.series(scss));
+  gulp.watch([path.watch.css], gulp.series(css));
+  gulp.watch([path.watch.sass], gulp.series(scss, linter));
   gulp.watch([path.watch.js], gulp.series(js));
   gulp.watch([path.watch.img], gulp.series(img, img2webp));
   gulp.watch([path.watch.sprite], gulp.series(sprite));
@@ -211,6 +230,9 @@ function clean() {
   return del('./' + distFolder)
 }
 
-let build = gulp.series(clean, gulp.parallel(pugBuild, css, scss, js, gulp.series(img, img2webp, sprite), toWoff, toWoff2))
+let buildDev = gulp.series(clean, gulp.parallel(pugBuild, css, scss, js, gulp.series(img, img2webp, sprite), toWoff, toWoff2), linter);
+let buildProd = gulp.series(clean, gulp.parallel(pugBuild, css, scssProduction, jsProduction, gulp.series(img, img2webp, sprite), toWoff, toWoff2), linter);
 
-exports.default = gulp.series(build, gulp.parallel(watcher, server))
+exports.dev = gulp.series(buildDev, gulp.parallel(watcher, server));
+exports.prod = gulp.series(buildProd, gulp.parallel(watcher, server));
+exports.linter = gulp.series(linter);
