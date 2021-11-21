@@ -1,6 +1,6 @@
 {
   "name": "gulp-project",
-  "version": "0.0.6",
+  "version": "1.0.0",
   "description": "Сборщик проекта",
   "main": "index.js",
   "scripts": {
