@@ -58,7 +58,8 @@ const gulp = require('gulp'),
       pug = require('gulp-pug'),
       stylelint = require('stylelint'),
       reporter = require('postcss-reporter'),
-      mediaQueries = require('gulp-group-css-media-queries');
+      mediaQueries = require('gulp-group-css-media-queries'),
+      bemLinter = require('postcss-bem-linter');
 
 // Tasks
 
@@ -109,6 +110,7 @@ function scssProduction() {
 function linter() {
   let processor = [
       stylelint(require('./.stylelintrc.js')),
+      bemLinter(),
       reporter({
         clearReportedMessages: true
       })
