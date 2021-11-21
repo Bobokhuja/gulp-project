@@ -1,4 +1,4 @@
-const { lint } = require('stylelint');
+// modules
 
 // Конфигурация
 const mode = 'development';
@@ -57,7 +57,8 @@ const gulp = require('gulp'),
       cssnano = require('cssnano'),
       pug = require('gulp-pug'),
       stylelint = require('stylelint'),
-      reporter = require('postcss-reporter');
+      reporter = require('postcss-reporter'),
+      mediaQueries = require('gulp-group-css-media-queries');
 
 // Tasks
 
@@ -97,6 +98,7 @@ function scssProduction() {
             outputStyle: 'expanded'
           }).on('error', sass.logError))
           .pipe(postcss(processor))
+          .pipe(mediaQueries())
           .pipe(gulp.dest(path.dist.css))
           .pipe(gulp.src(path.dist.css + '/style.css'))
           .pipe(rename('style.min.css'))
