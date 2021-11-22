@@ -1,6 +1,6 @@
 {
   "name": "gulp-project",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "Сборщик проекта",
   "main": "index.js",
   "scripts": {
@@ -19,8 +19,10 @@
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-cheerio": "^1.0.0",
+    "gulp-concat": "^2.6.1",
     "gulp-fonter": "^0.3.0",
     "gulp-group-css-media-queries": "^1.2.2",
+    "gulp-htmlhint": "^4.0.1",
     "gulp-imagemin": "^7.0.0",
     "gulp-postcss": "^9.0.1",
     "gulp-pug": "^5.0.0",
@@ -29,7 +31,7 @@
     "gulp-sourcemaps": "^3.0.0",
     "gulp-svg-sprite": "^1.5.0",
     "gulp-ttf2woff2": "^4.0.1",
-    "gulp-uglify-es": "^3.0.0",
+    "gulp-uglify": "^3.0.2",
     "gulp-webp": "^4.0.1",
     "postcss": "^8.3.11",
     "postcss-bem-linter": "^3.3.0",

@@ -1,7 +1,6 @@
-// modules
-
-// Конфигурация
 const mode = 'development';
+
+// modules
 
 const sourceFolder = 'src',
       distFolder = 'dist';
@@ -35,7 +34,13 @@ const path = {
     sprite: sourceFolder + '/img/icons/**/*.svg',
     fonts: sourceFolder + '/fonts/**/*.{woff,woff2}'
   }
-}
+};
+
+const jsConcat = [
+  sourceFolder + '/js/jquery.js',
+  sourceFolder + '/js/svgxuse.min.js',
+  sourceFolder + '/js/**/*.js'
+];
 
 // dependencies
 const gulp = require('gulp'),
@@ -43,7 +48,7 @@ const gulp = require('gulp'),
       sourcemaps = require('gulp-sourcemaps'),
       sass = require('gulp-sass')(require('sass')),
       del = require('del'),
-      uglify = require('gulp-uglify-es').default,
+      uglify = require('gulp-uglify'),
       babel = require("gulp-babel"),
       rename = require('gulp-rename'),
       imagemin = require('gulp-imagemin'),
@@ -59,7 +64,9 @@ const gulp = require('gulp'),
       stylelint = require('stylelint'),
       reporter = require('postcss-reporter'),
       mediaQueries = require('gulp-group-css-media-queries'),
-      bemLinter = require('postcss-bem-linter');
+      bemLinter = require('postcss-bem-linter'),
+      htmlhint = require('gulp-htmlhint'),
+      concat = require('gulp-concat')
 
 // Tasks
 
@@ -70,15 +77,13 @@ function pugBuild() {
         pretty: true
       })
     )
+    .pipe(htmlhint())
     .pipe(gulp.dest(path.dist.html))
     .pipe(browserSync.stream())
 }
 
 function scss() {
   let processor = [autoprefixer('last 2 versions')]
-  if (mode === 'production') {
-    processor.push(cssnano())
-  }
   return gulp.src(path.src.sass)
           .pipe(sourcemaps.init())
           .pipe(postcss([stylelint()]))
@@ -86,12 +91,13 @@ function scss() {
             outputStyle: 'expanded'
           }).on('error', sass.logError))
           .pipe(sourcemaps.write())
+          .pipe(postcss(processor))
           .pipe(gulp.dest(path.dist.css))
           .pipe(browserSync.stream())
     
 }
 
-function scssProduction() {
+function scssProd() {
   let processor = [autoprefixer('last 2 versions')]
 
   return gulp.src(path.src.sass)
@@ -101,8 +107,15 @@ function scssProduction() {
           .pipe(postcss(processor))
           .pipe(mediaQueries())
           .pipe(gulp.dest(path.dist.css))
-          .pipe(gulp.src(path.dist.css + '/style.css'))
-          .pipe(rename('style.min.css'))
+          .pipe(gulp.src(path.src.sass))
+          .pipe(sass({
+            outputStyle: 'expanded'
+          }).on('error', sass.logError))
+          .pipe(postcss(processor))
+          .pipe(mediaQueries())
+          .pipe(rename({
+            extname: 'style.min.css'
+          }))
           .pipe(gulp.dest(path.dist.css))
           .pipe(browserSync.stream());
 }
@@ -128,22 +141,24 @@ function css() {
 }
 
 function js() {
-    return gulp.src(path.src.js)
-            .pipe(babel({
-              presets: ["@babel/preset-env"]
-            }))
-            .pipe(gulp.dest(path.dist.js))
-            .pipe(browserSync.stream());
-      
+  return gulp.src(path.src.js)
+          .pipe(gulp.dest(path.dist.js))
+          .pipe(browserSync.stream());
 }
 
-function jsProduction() {
-  return gulp.src(path.src.js)
+function jsProd() {
+  return gulp.src(jsConcat)
           .pipe(babel({
-              presets: ["@babel/preset-env"]
-            }))
+            presets: ["@babel/preset-env"]
+          }))
+          .pipe(concat('all.js'))
+          .pipe(gulp.dest(path.dist.js))
+          .pipe(gulp.src(path.src.js))
+          .pipe(babel({
+            presets: ["@babel/preset-env"]
+          }))
+          .pipe(concat('all.min.js'))
           .pipe(uglify())
-          .pipe(rename({extname: '.min.js'}))
           .pipe(gulp.dest(path.dist.js))
           .pipe(browserSync.stream());
 }
@@ -223,8 +238,13 @@ function server() {
 function watcher() {
   gulp.watch([path.watch.pug], gulp.series(pugBuild));
   gulp.watch([path.watch.css], gulp.series(css));
-  gulp.watch([path.watch.sass], gulp.series(scss, linter));
-  gulp.watch([path.watch.js], gulp.series(js));
+  if (mode === 'development') {
+    gulp.watch([path.watch.sass], gulp.series(scss, linter));
+    gulp.watch([path.watch.js], gulp.series(js));
+  } else if(mode === 'production') {
+    gulp.watch([path.watch.sass], gulp.series(scssProd));
+    gulp.watch([path.watch.js], gulp.series(jsProd));
+  }
   gulp.watch([path.watch.img], gulp.series(img, img2webp));
   gulp.watch([path.watch.sprite], gulp.series(sprite));
   gulp.watch([path.watch.fonts], gulp.parallel(toWoff, toWoff2));
@@ -234,9 +254,8 @@ function clean() {
   return del('./' + distFolder)
 }
 
-let buildDev = gulp.series(clean, gulp.parallel(pugBuild, css, scss, js, gulp.series(img, img2webp, sprite), toWoff, toWoff2), linter);
-let buildProd = gulp.series(clean, gulp.parallel(pugBuild, css, scssProduction, jsProduction, gulp.series(img, img2webp, sprite), toWoff, toWoff2), linter);
+let serve = gulp.series(clean, gulp.parallel(pugBuild, css, scss, js, gulp.series(img, img2webp, sprite), toWoff, toWoff2), linter);
 
-exports.dev = gulp.series(buildDev, gulp.parallel(watcher, server));
-exports.prod = gulp.series(buildProd, gulp.parallel(watcher, server));
+exports.dev = gulp.series(serve, gulp.parallel(watcher, server));
 exports.linter = gulp.series(linter);
+exports.build = serve;
