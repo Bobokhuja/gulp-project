@@ -147,7 +147,7 @@ function js() {
 }
 
 function jsProd() {
-  return gulp.src(jsConcat)
+  return gulp.src(jsConcat, {allowEmpty: true})
           .pipe(babel({
             presets: ["@babel/preset-env"]
           }))
@@ -254,8 +254,10 @@ function clean() {
   return del('./' + distFolder)
 }
 
-let serve = gulp.series(clean, gulp.parallel(pugBuild, css, scss, js, gulp.series(img, img2webp, sprite), toWoff, toWoff2), linter);
+let dev = gulp.series(clean, gulp.parallel(pugBuild, css, scss, js, gulp.series(img, img2webp, sprite), toWoff, toWoff2), linter);
+let prod = gulp.series(clean, gulp.parallel(pugBuild, css, scssProd, jsProd, gulp.series(img, img2webp, sprite), toWoff, toWoff2));
 
-exports.dev = gulp.series(serve, gulp.parallel(watcher, server));
+exports.dev = gulp.series(dev, gulp.parallel(watcher, server));
+exports.prod = gulp.series(prod, gulp.parallel(watcher, server));
 exports.linter = gulp.series(linter);
-exports.build = serve;
+exports.build = prod;
