@@ -10,7 +10,7 @@ const path = {
     html: sourceFolder + '/*.html',
     sass: sourceFolder + '/scss/style.scss',
     css: sourceFolder + '/css/**/*.css',
-    js: sourceFolder + '/js/**/*.js',
+    js: sourceFolder + '/js/index.js',
     img: sourceFolder + '/img/**/*.{jpg,png,webp,svg,ico,gif}',
     icons: sourceFolder + '/img/icons/**/*.svg',
     fonts: sourceFolder + '/fonts/**/*.{woff,woff2}',
@@ -37,9 +37,10 @@ const path = {
 };
 
 const jsConcat = [
+  sourceFolder + '/js/lite-yt-embed.js',
   sourceFolder + '/js/jquery.js',
   sourceFolder + '/js/svgxuse.min.js',
-  sourceFolder + '/js/**/*.js'
+  sourceFolder + '/js/index.js'
 ];
 
 // dependencies
@@ -48,8 +49,6 @@ const gulp = require('gulp'),
       sourcemaps = require('gulp-sourcemaps'),
       sass = require('gulp-sass')(require('sass')),
       del = require('del'),
-      uglify = require('gulp-uglify'),
-      babel = require("gulp-babel"),
       rename = require('gulp-rename'),
       imagemin = require('gulp-imagemin'),
       webp = require('gulp-webp'),
@@ -64,9 +63,8 @@ const gulp = require('gulp'),
       stylelint = require('stylelint'),
       reporter = require('postcss-reporter'),
       mediaQueries = require('gulp-group-css-media-queries'),
-      bemLinter = require('postcss-bem-linter'),
-      htmlhint = require('gulp-htmlhint'),
-      concat = require('gulp-concat')
+      webpack = require('webpack'),
+      gulpWebpack = require('webpack-stream');
 
 // Tasks
 
@@ -99,6 +97,7 @@ function scss() {
 
 function scssProd() {
   let processor = [autoprefixer('last 2 versions')]
+  let processorMin = [autoprefixer('last 2 versions'), cssnano()]
 
   return gulp.src(path.src.sass)
           .pipe(sass({
@@ -111,10 +110,10 @@ function scssProd() {
           .pipe(sass({
             outputStyle: 'expanded'
           }).on('error', sass.logError))
-          .pipe(postcss(processor))
           .pipe(mediaQueries())
+          .pipe(postcss(processorMin))
           .pipe(rename({
-            extname: 'style.min.css'
+            extname: '.min.css'
           }))
           .pipe(gulp.dest(path.dist.css))
           .pipe(browserSync.stream());
@@ -123,7 +122,6 @@ function scssProd() {
 function linter() {
   let processor = [
       stylelint(require('./.stylelintrc.js')),
-      bemLinter(),
       reporter({
         clearReportedMessages: true
       })
@@ -142,23 +140,7 @@ function css() {
 
 function js() {
   return gulp.src(path.src.js)
-          .pipe(gulp.dest(path.dist.js))
-          .pipe(browserSync.stream());
-}
-
-function jsProd() {
-  return gulp.src(jsConcat, {allowEmpty: true})
-          .pipe(babel({
-            presets: ["@babel/preset-env"]
-          }))
-          .pipe(concat('all.js'))
-          .pipe(gulp.dest(path.dist.js))
-          .pipe(gulp.src(path.src.js))
-          .pipe(babel({
-            presets: ["@babel/preset-env"]
-          }))
-          .pipe(concat('all.min.js'))
-          .pipe(uglify())
+          .pipe(gulpWebpack(require('./webpack.config.js'), webpack))
           .pipe(gulp.dest(path.dist.js))
           .pipe(browserSync.stream());
 }
@@ -240,10 +222,8 @@ function watcher() {
   gulp.watch([path.watch.css], gulp.series(css));
   if (mode === 'development') {
     gulp.watch([path.watch.sass], gulp.series(scss, linter));
-    gulp.watch([path.watch.js], gulp.series(js));
   } else if(mode === 'production') {
     gulp.watch([path.watch.sass], gulp.series(scssProd));
-    gulp.watch([path.watch.js], gulp.series(jsProd));
   }
   gulp.watch([path.watch.img], gulp.series(img, img2webp));
   gulp.watch([path.watch.sprite], gulp.series(sprite));
@@ -255,7 +235,7 @@ function clean() {
 }
 
 let dev = gulp.series(clean, gulp.parallel(pugBuild, css, scss, js, gulp.series(img, img2webp, sprite), toWoff, toWoff2), linter);
-let prod = gulp.series(clean, gulp.parallel(pugBuild, css, scssProd, jsProd, gulp.series(img, img2webp, sprite), toWoff, toWoff2));
+let prod = gulp.series(clean, gulp.parallel(pugBuild, css, scssProd, js, gulp.series(img, img2webp, sprite), toWoff, toWoff2));
 
 exports.dev = gulp.series(dev, gulp.parallel(watcher, server));
 exports.prod = gulp.series(prod, gulp.parallel(watcher, server));
