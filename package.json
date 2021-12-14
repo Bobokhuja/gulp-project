@@ -17,9 +17,7 @@
     "cssnano": "^5.0.10",
     "del": "^6.0.0",
     "gulp": "^4.0.2",
-    "gulp-babel": "^8.0.0",
     "gulp-cheerio": "^1.0.0",
-    "gulp-concat": "^2.6.1",
     "gulp-fonter": "^0.3.0",
     "gulp-group-css-media-queries": "^1.2.2",
     "gulp-imagemin": "^7.0.0",
@@ -38,7 +36,9 @@
     "sass": "^1.43.4",
     "stylelint": "^14.1.0",
     "stylelint-config-recess-order": "^3.0.0",
-    "stylelint-config-standard": "^24.0.0"
+    "stylelint-config-standard": "^24.0.0",
+    "webpack": "^5.64.4",
+    "webpack-stream": "^7.0.0"
   },
   "dependencies": {
     "@babel/preset-env": "^7.16.0"
