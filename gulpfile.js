@@ -75,7 +75,6 @@ function pugBuild() {
         pretty: true
       })
     )
-    .pipe(htmlhint())
     .pipe(gulp.dest(path.dist.html))
     .pipe(browserSync.stream())
 }
@@ -225,6 +224,7 @@ function watcher() {
   } else if(mode === 'production') {
     gulp.watch([path.watch.sass], gulp.series(scssProd));
   }
+  gulp.watch([path.watch.js], gulp.series(js));
   gulp.watch([path.watch.img], gulp.series(img, img2webp));
   gulp.watch([path.watch.sprite], gulp.series(sprite));
   gulp.watch([path.watch.fonts], gulp.parallel(toWoff, toWoff2));

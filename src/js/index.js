@@ -1,9 +1,1 @@
-class Armon {
-  constructor() {
-
-  }
-
-  id()  {
-    console.log(123)
-  }
-}
+Array.from([1, 2, 3])
